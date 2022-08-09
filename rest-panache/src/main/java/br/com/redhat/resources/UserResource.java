@@ -16,10 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
-
 import br.com.redhat.model.User;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 @Path("/users")
 @Produces(MediaType.APPLICATION_JSON)
@@ -52,21 +49,21 @@ public class UserResource {
 
     @POST
     @Transactional
-    public Response newUser(User user) {
+    public Response create(User user) {
         user.persist();
-        return Response.status(Status.CREATED).entity(user).build();
+        return Response.created(URI.create("/users/" + user.id)).build();
     }
 
     @PUT
     @Path("/{id}")
     @Transactional
-    public Response updateUser(@PathParam("id") Long id, User user) {
+    public Response update(@PathParam("id") Long id, User user) {
         Optional<User> databaseUser = User.findByIdOptional(id);
         if(databaseUser.isPresent()) {
             databaseUser.get().name = user.name;
             databaseUser.get().password = user.password;
             databaseUser.get().email = user.email;
-            return Response.ok(user).build();
+            return Response.ok(databaseUser).build();
         }
 
         return Response.status(Status.NOT_FOUND).build();
@@ -75,7 +72,7 @@ public class UserResource {
     @DELETE
     @Path("/{id}")
     @Transactional
-    public Response deleteUser(@PathParam("id") Long id) {
+    public Response delete(@PathParam("id") Long id) {
         Optional<User> user = User.findByIdOptional(id);
         if(user.isPresent()) {
             user.get().delete();
